@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLEXI 2026 WAEC MOCK</title>
+    <title>FLEXI 2026 WAEC MOCK - ENGLISH</title>
     <style>
         :root {
             --flexi-blue: #2563eb;
@@ -56,15 +56,15 @@
         button:disabled { background: #ccc; cursor: not-allowed; }
 
         .tabs-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 20px; }
-        .tab { padding: 8px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; cursor: pointer; background: #fff; transition: 0.2s; }
-        .tab.active { border: 2px solid var(--flexi-blue); font-weight: bold; transform: scale(1.1); }
-        .tab.answered { background: var(--flexi-yellow); border-color: var(--flexi-yellow); color: var(--flexi-dark); }
+        .tab { padding: 8px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; cursor: pointer; background: #fff; }
+        .tab.active { border: 2px solid var(--flexi-blue); font-weight: bold; }
+        .tab.answered { background: var(--flexi-yellow); border-color: var(--flexi-yellow); }
 
-        .opt { background: #fff; border: 2px solid #e2e8f0; text-align: left; margin-bottom: 10px; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.2s; }
+        .opt { background: #fff; border: 2px solid #e2e8f0; text-align: left; margin-bottom: 10px; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; }
         .opt.selected { border-color: var(--flexi-purple); background: #f5f3ff; color: var(--flexi-purple); font-weight: bold; }
         
         .logo-row { display: flex; justify-content: space-around; margin-bottom: 15px; align-items: center; }
-        .logo { width: 60px; height: auto; border-radius: 5px; }
+        .logo { width: 60px; height: auto; }
     </style>
 </head>
 <body>
@@ -74,8 +74,8 @@
     <div class="container">
         <div id="page1" class="page">
             <div class="logo-row">
-                <img src="https://i.postimg.cc/nrFypYrP/1771700279759-2.jpg" class="logo" alt="Flexi Logo">
-                <img src="https://i.postimg.cc/KzJ9rXc0/download-(1).png" class="logo" alt="WAEC Logo">
+                <img src="https://i.postimg.cc/nrFypYrP/1771700279759-2.jpg" class="logo">
+                <img src="https://i.postimg.cc/KzJ9rXc0/download-(1).png" class="logo">
             </div>
             <h2>Candidate Login</h2>
             <input type="text" id="candidateName" placeholder="Full Name">
@@ -85,23 +85,22 @@
         </div>
 
         <div id="page2" class="page" style="display:none;">
-            <h2>Exam Instructions</h2>
+            <h2>English Language Mock</h2>
             <ul class="inst-list">
-                <li><b>Questions:</b> 60 Objective Questions.</li>
                 <li><b>Duration:</b> 10 Minutes.</li>
-                <li><b>One Entry:</b> Only one submission allowed per number.</li>
-                <li><b>Strict Anti-Cheat:</b> If you switch apps or minimize this tab, your exam will be submitted immediately.</li>
+                <li><b>Strict Anti-Cheat:</b> If you minimize this tab or switch apps, your work submits <b>immediately</b>.</li>
+                <li>Ensure you have a good network before starting.</li>
             </ul>
-            <button class="btn-primary" style="background:#10b981;" onclick="startExam()">Start Examination Now</button>
+            <button class="btn-primary" style="background:#10b981;" onclick="startExam()">Start Examination</button>
         </div>
 
         <div id="page3" class="page" style="display:none;">
             <div id="progress-container"><div id="progress-bar"></div></div>
             <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
-                <span id="timer" style="color:var(--flexi-purple); font-family: monospace; font-size: 1.2rem;">10:00</span>
+                <span id="timer" style="color:var(--flexi-purple); font-size: 1.2rem;">10:00</span>
                 <span id="q-count">Q1/60</span>
             </div>
-            <p id="q-text" style="text-align:left; font-size:1.1rem; margin-bottom:20px; color:var(--flexi-dark); min-height: 60px; font-weight: 500;"></p>
+            <p id="q-text" style="text-align:left; font-size:1.1rem; margin-bottom:20px; color:var(--flexi-dark); min-height: 60px;"></p>
             <div id="options-grid"></div>
             
             <div style="display:flex; gap:10px; margin-top:20px;">
@@ -117,7 +116,7 @@
             <div id="status-icon" style="font-size: 60px; margin-bottom: 15px;"></div>
             <h2 id="status-title"></h2>
             <p id="status-message" style="color:#64748b; line-height: 1.5;"></p>
-            <button class="btn-primary" onclick="location.reload()" style="margin-top:25px;">Close & Return Home</button>
+            <button class="btn-primary" onclick="location.reload()" style="margin-top:25px;">Return Home</button>
         </div>
     </div>
 
@@ -125,25 +124,25 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <script>
-        // --- FIREBASE CONFIG ---
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyAAg4Kpiqa__ijYuEgNmarTJ0HSm4VhXYo",
             authDomain: "waeccbt-31117.firebaseapp.com",
             projectId: "waeccbt-31117",
             storageBucket: "waeccbt-31117.firebasestorage.app",
             messagingSenderId: "519421400107",
-            appId: "1:519421400107:web:9898fc5f17129d484e066e",
-            measurementId: "G-NL3LQE56L9"
+            appId: "1:519421400107:web:9898fc5f17129d484e066e"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- VARIABLES ---
-        const startTime = new Date("2026-04-07T22:00:00").getTime(); 
+        // GLOBAL VARS
+        const startTime = new Date("2026-04-07T20:00:00").getTime(); 
         const endTime = new Date("2026-04-08T18:00:00").getTime();
         let questions = [], currentIdx = 0, userAnswers = {}, timerInterval;
         let isSubmitting = false;
 
+        // Timer Gate
         function checkTime() {
             const now = new Date().getTime();
             const btn = document.getElementById('loginBtn');
@@ -153,7 +152,7 @@
                 msg.style.color = "orange";
                 btn.disabled = true;
             } else if (now > endTime) {
-                msg.innerText = "Examination Period has Closed.";
+                msg.innerText = "Exam Period Closed.";
                 msg.style.color = "red";
                 btn.disabled = true;
             } else {
@@ -164,10 +163,10 @@
         }
         setInterval(checkTime, 1000);
 
-        // IMMEDIATE SUBMISSION ON TAB SWITCH
+        // Anti-Cheat (Instant)
         document.addEventListener("visibilitychange", () => {
             if (document.hidden && document.getElementById('page3').style.display === 'block' && !isSubmitting) {
-                submitExam("Automatic submission due to tab switching.");
+                submitExam("Auto-Submitted (Tab Switched)");
             }
         });
 
@@ -176,22 +175,23 @@
             const phone = document.getElementById('whatsappNumber').value.trim();
             const btn = document.getElementById('loginBtn');
 
-            if(name.length < 3 || phone.length < 10) return alert("Valid Name and WhatsApp number required.");
+            if(name.length < 3 || phone.length < 10) return alert("Enter valid Name and WhatsApp number.");
 
             btn.disabled = true;
-            btn.innerText = "Checking Records...";
+            btn.innerText = "Verifying...";
 
             try {
                 const doc = await db.collection("results").doc(phone).get();
-                if (doc.exists) {
-                    alert("Records show you have already submitted this exam.");
-                    btn.innerText = "Already Submitted";
+                // Check if they ALREADY did English
+                if (doc.exists && doc.data().subjects && doc.data().subjects.english) {
+                    alert("ACCESS DENIED: You have already submitted the English Mock.");
+                    btn.innerText = "English Done";
                     return;
                 }
                 document.getElementById('page1').style.display = 'none';
                 document.getElementById('page2').style.display = 'block';
             } catch (e) {
-                alert("Network Error. Try again.");
+                alert("Network error. Refresh and try again.");
                 btn.disabled = false;
                 btn.innerText = "Proceed";
             }
@@ -259,16 +259,16 @@
                 let m = Math.floor(t / 60), s = t % 60;
                 document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
                 document.getElementById('progress-bar').style.width = (t/total*100) + "%";
-                if (--t < 0) { clearInterval(timerInterval); submitExam("Time up."); }
+                if (--t < 0) { clearInterval(timerInterval); submitExam("Time Up"); }
             }, 1000);
         }
 
         function confirmSubmit() {
             if(isSubmitting) return;
-            if(confirm("Submit your exam now?")) submitExam("User clicked submit.");
+            if(confirm("Submit your English mock now?")) submitExam("Manual Submit");
         }
 
-        async function submitExam(reason = "Standard submission") {
+        async function submitExam(reason) {
             if (isSubmitting) return;
             isSubmitting = true; 
             clearInterval(timerInterval);
@@ -278,28 +278,32 @@
             
             document.getElementById('page3').style.display = 'none';
             document.getElementById('page4').style.display = 'block';
-            document.getElementById('status-title').innerText = "Uploading Scores...";
+            document.getElementById('status-title').innerText = "Uploading English Result...";
 
             try {
                 let score = 0;
                 questions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
                 
+                // MULTI-SUBJECT LOGIC (Saving to English)
                 await db.collection("results").doc(phone).set({
                     name: name,
                     phone: phone,
-                    score: score,
-                    status: reason,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                    subjects: {
+                        english: {
+                            score: score,
+                            status: reason,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }
+                    }
+                }, { merge: true }); // CRITICAL: Merging ensures math doesn't delete english tomorrow
                 
                 document.getElementById('status-icon').innerText = "✅";
-                document.getElementById('status-title').innerText = "Submission Successful";
-                document.getElementById('status-message').innerText = `Congratulations ${name}, your response has been saved. Results will be sent to ${phone} via WhatsApp Group.`;
-            } catch (e) {
+                document.getElementById('status-title').innerText = "English Submitted!";
+                document.getElementById('status-message').innerText = `Congratulations ${name}, your response has been saved. Results will be sent to ${phone} via WhatsApp Group.`;            } catch (e) {
                 isSubmitting = false; 
                 document.getElementById('status-icon').innerText = "❌";
-                document.getElementById('status-title').innerText = "Submission Error";
-                document.getElementById('status-message').innerText = "Connection lost. Do not close this tab. Try clicking return home to refresh or contact admin.";
+                document.getElementById('status-title').innerText = "Error Saving!";
+                document.getElementById('status-message').innerText = "Connection lost. Do not close this tab. Try clicking return home to refresh or contact the invigilator immediately.";
             }
         }
     </script>
