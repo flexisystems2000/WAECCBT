@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexi Educational Consults - CBT</title>
+    <style>/* General Reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #f0f2f5; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+}
+
+/* Page Container */
+.page {
+    background: white;
+    width: 95%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* Logo Styling */
+.logo-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.logo { width: 70px; height: auto; }
+
+/* Form Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+input:focus { border-color: #4f46e5; outline: none; }
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+button:disabled { background: #ccc; cursor: not-allowed; }
+#loginBtn { background: #4f46e5; color: white; }
+.start-btn { background: #10b981; color: white; }
+
+/* Exam Header (Timer & Count) */
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    background: #1e293b;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: monospace;
+    font-size: 1.2rem;
+}
+
+/* Options Grid */
+#options-grid {
+    margin-top: 20px;
+    text-align: left;
+}
+.opt {
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    color: #334155;
+    text-align: left;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+.opt:hover { background: #f8fafc; border-color: #cbd5e1; }
+.opt.selected {
+    background: #eef2ff;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    font-weight: bold;
+}
+
+/* Navigation Buttons */
+.nav-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+#prevBtn { background: #64748b; color: white; width: 50%; }
+#nextBtn, #submitBtn { background: #4f46e5; color: white; width: 50%; }
+#submitBtn { background: #ef4444; }
+
+/* Status Page Icons */
+#status-icon { font-size: 60px; margin-bottom: 15px; }
+.status-msg { font-size: 14px; margin: 10px 0; font-weight: bold; }
+
+/* Instruction Box */
+.instruction-box {
+    text-align: left;
+    background: #f8fafc;
+    padding: 15px;
+    border-left: 5px solid #4f46e5;
+    margin: 20px 0;
+    font-size: 15px;
+    line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+    <div id="page1" class="page">
+        <div class="logo-row">
+            <img src="flexi-logo.png" alt="Flexi Logo" class="logo">
+            <img src="waec-logo.png" alt="WAEC Logo" class="logo">
+        </div>
+        <h2>Candidate Login</h2>
+        <input type="text" id="candidateName" placeholder="Full Name" required>
+        <input type="tel" id="whatsappNumber" placeholder="WhatsApp Number" required>
+        <p id="time-status" class="status-msg"></p>
+        <button id="loginBtn" onclick="validateLogin()" disabled>Enter Examination</button>
+    </div>
+
+    <div id="page2" class="page" style="display:none;">
+        <h2>Examination Instructions</h2>
+        <div class="instruction-box">
+            <p>1. Total Questions: 60</p>
+            <p>2. Time Allowed: 10 Minutes</p>
+            <p>3. Do not refresh this page during the exam.</p>
+            <p>4. Your results will be saved automatically when time is up.</p>
+        </div>
+        <button class="start-btn" onclick="startExam()">Start Exam Now</button>
+    </div>
+
+    <div id="page3" class="page" style="display:none;">
+        <div class="exam-header">
+            <span id="timer">10:00</span>
+            <span id="q-count">Question 1/60</span>
+        </div>
+        <div id="question-container">
+            <p id="q-text">Loading...</p>
+            <div id="options-grid"></div>
+        </div>
+        <div class="nav-btns">
+            <button id="prevBtn" onclick="changeQ(-1)">Previous</button>
+            <button id="nextBtn" onclick="changeQ(1)">Next</button>
+            <button id="submitBtn" onclick="submitExam()" style="display:none;">Submit</button>
+        </div>
+    </div>
+
+    <div id="page4" class="page" style="display:none; text-align:center;">
+        <div id="status-icon"></div>
+        <h2 id="status-title"></h2>
+        <p id="status-message"></p>
+        <button onclick="location.reload()">Finish</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      // --- FIREBASE CONFIG (REPLACE WITH YOUR KEYS) ---
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_ID",
+    appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// --- EXAM SETTINGS ---
+const startTime = new Date("2026-04-07T20:00:00").getTime();
+const endTime = new Date("2026-04-08T18:00:00").getTime();
+let questions = [];
+let currentIdx = 0;
+let userAnswers = {};
+
+// --- TIME GATE ENFORCEMENT ---
+function checkTime() {
+    const now = new Date().getTime();
+    const btn = document.getElementById('loginBtn');
+    const msg = document.getElementById('time-status');
+
+    if (now < startTime) {
+        msg.innerText = "Exam starts at 10:00 PM tonight.";
+        btn.disabled = true;
+    } else if (now > endTime) {
+        msg.innerText = "Exam period has ended.";
+        btn.disabled = true;
+    } else {
+        msg.innerText = "Exam is now LIVE.";
+        msg.style.color = "green";
+        btn.disabled = false;
+    }
+}
+setInterval(checkTime, 1000);
+
+// --- NAVIGATION ---
+function validateLogin() {
+    const name = document.getElementById('candidateName').value;
+    const phone = document.getElementById('whatsappNumber').value;
+    if(name.length < 3 || phone.length < 10) return alert("Enter valid details");
+    
+    document.getElementById('page1').style.display = 'none';
+    document.getElementById('page2').style.display = 'block';
+}
+
+async function startExam() {
+    // Fetch from your GitHub API
+    const res = await fetch("https://flexisystems2000.github.io/my-api/db.json");
+    const data = await res.json();
+    questions = data.questions;
+
+    document.getElementById('page2').style.display = 'none';
+    document.getElementById('page3').style.display = 'block';
+    renderQuestion();
+    startTimer(600); // 10 Minutes
+}
+
+function renderQuestion() {
+    const q = questions[currentIdx];
+    document.getElementById('q-text').innerText = q.question;
+    document.getElementById('q-count').innerText = `Question ${currentIdx + 1}/60`;
+    
+    const grid = document.getElementById('options-grid');
+    grid.innerHTML = "";
+    Object.entries(q.options).forEach(([key, val]) => {
+        const btn = document.createElement('button');
+        btn.className = `opt ${userAnswers[currentIdx] === key ? 'selected' : ''}`;
+        btn.innerText = `${key}. ${val}`;
+        btn.onclick = () => { userAnswers[currentIdx] = key; renderQuestion(); };
+        grid.appendChild(btn);
+    });
+
+    document.getElementById('prevBtn').disabled = currentIdx === 0;
+    document.getElementById('nextBtn').style.display = currentIdx === 59 ? 'none' : 'inline-block';
+    document.getElementById('submitBtn').style.display = currentIdx === 59 ? 'inline-block' : 'none';
+}
+
+function changeQ(step) { currentIdx += step; renderQuestion(); }
+
+// --- SUBMISSION & NOTIFIER ---
+async function submitExam() {
+    const phone = document.getElementById('whatsappNumber').value;
+    document.getElementById('page3').style.display = 'none';
+    document.getElementById('page4').style.display = 'block';
+    
+    const statusTitle = document.getElementById('status-title');
+    statusTitle.innerText = "Submitting Result...";
+
+    try {
+        // Calculate score
+        let score = 0;
+        questions.forEach((q, i) => { if(userAnswers[i] === q.answer) score++; });
+
+        await db.collection("results").doc(phone).set({
+            name: document.getElementById('candidateName').value,
+            score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // SUCCESS NOTIFICATION
+        document.getElementById('status-icon').innerText = "✅";
+        statusTitle.innerText = "Exam Submitted Successfully!";
+        document.getElementById('status-message').innerText = "Your score has been recorded. You can close this page.";
+    } catch (e) {
+        // FAILURE NOTIFICATION
+        document.getElementById('status-icon').innerText = "❌";
+        statusTitle.innerText = "Submission Failed!";
+        document.getElementById('status-message').innerText = "Failed to submit. Contact the invigilator immediately.";
+    }
+}
+
+    </script>
+</body>
+</html>
