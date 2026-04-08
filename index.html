@@ -488,7 +488,7 @@
         }
     });
 
-    // Calculator (unchanged)
+        // Calculator (unchanged)
     function toggleCalc() {
         const el = document.getElementById('calc-container');
         el.style.display = el.style.display === 'block' ? 'none' : 'block';
@@ -505,4 +505,20 @@
     function cGo(){
         try{
             let exp=document.getElementById('calc-display').value;
-            exp=exp.repl
+            exp=exp.replace(/log\(/g,'Math.log10(').replace(/√\(/g,'Math.sqrt(');
+            exp=exp.replace(/(sin|cos|tan)\(([^)]+)\)/g,(m,f,a)=>`Math.${f}((${a})*Math.PI/180)`);
+            let r=eval(exp);
+            document.getElementById('calc-display').value=isNaN(r)?'Error':r.toFixed(6);
+        }catch(e){document.getElementById('calc-display').value='Error';}
+    }
+
+    function changeQ(n){ if(questions[currentIdx+n]){currentIdx+=n;renderQuestion();}}
+    function confirmSubmit(){ if(confirm("Submit?")) submitExam("Manual"); }
+
+    // 🔥 INIT STATUS ON LOAD
+    window.onload = () => {
+        updateExamStatus();
+    };
+</script>
+</body>
+</html>
