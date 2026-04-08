@@ -289,6 +289,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+        const startTime = new Date("2026-04-08T12:00:00").getTime(); 
+    const endTime = new Date("2026-04-09T18:00:00").getTime();
     let questions = [], currentIdx = 0, userAnswers = {}, timerInterval, isSubmitting = false, candidateName = "";
 
     // Toast Notification System
@@ -308,6 +310,24 @@
     async function verifyOnTheFly() {
         const phone = document.getElementById('whatsappNumber').value.trim();
         const btn = document.getElementById('loginBtn');
+
+        const now = new Date().getTime();
+
+    // ⛔ BEFORE EXAM
+    if (now < startTime) {
+        btn.innerText = "Exam Not Started";
+        btn.disabled = true;
+        btn.style.background = "#991b1b";
+        return;
+    }
+
+    // ⛔ AFTER EXAM
+    if (now > endTime) {
+        btn.innerText = "Exam Closed";
+        btn.disabled = true;
+        btn.style.background = "#991b1b";
+        return;
+    }
         
         if(phone.length === 11) {
             btn.innerText = "Verifying...";
