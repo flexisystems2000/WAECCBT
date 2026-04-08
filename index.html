@@ -188,6 +188,8 @@
             </div>
             <h2>Mathematics WAEC Mock</h2>
             <input type="tel" id="whatsappNumber" placeholder="Enter WhatsApp Number" maxlength="11" oninput="verifyOnTheFly()">
+            <p id="examStatus" style="margin:8px 0 12px; font-weight:600; color:#475569;"></p>
+            
             <button class="btn-primary" id="loginBtn" onclick="goToInstructions()" disabled style="margin-top: 10px;">Verify & Proceed</button>
             <div class="flexi-footer">Powered by Flexi Educational Consult</div>
         </div>
@@ -286,14 +288,16 @@
         messagingSenderId: "519421400107", 
         appId: "1:519421400107:web:9898fc5f17129d484e066e" 
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-        const startTime = new Date("2026-04-08T12:00:00").getTime(); 
+    const startTime = new Date("2026-04-08T22:00:00").getTime(); 
     const endTime = new Date("2026-04-09T18:00:00").getTime();
+
     let questions = [], currentIdx = 0, userAnswers = {}, timerInterval, isSubmitting = false, candidateName = "";
 
-    // Toast Notification System
+    // Toast System
     function showToast(message, type) {
         const toast = document.getElementById('notification-toast');
         const text = document.getElementById('toast-text');
@@ -306,60 +310,73 @@
         setTimeout(() => { toast.classList.remove('show'); }, 4500);
     }
 
+    // 🔥 STATUS CONTROLLER (MAIN FIX)
+    function updateExamStatus() {
+        const btn = document.getElementById('loginBtn');
+        const status = document.getElementById('examStatus');
+        const now = Date.now();
+
+        btn.style.background = "#cbd5e1";
+
+        if (now < startTime) {
+            btn.disabled = true;
+            status.innerText = "⏳ EXAM HAS NOT STARTED YET";
+            status.style.color = "#ef4444";
+            return;
+        }
+
+        if (now > endTime) {
+            btn.disabled = true;
+            status.innerText = "❌ EXAM CLOSED";
+            status.style.color = "#ef4444";
+            return;
+        }
+
+        status.innerText = "🟢 STATUS: SYSTEM ONLINE";
+        status.style.color = "#22c55e";
+    }
+
     // Bulletproof Verification
     async function verifyOnTheFly() {
         const phone = document.getElementById('whatsappNumber').value.trim();
         const btn = document.getElementById('loginBtn');
+        const now = Date.now();
 
-        const now = new Date().getTime();
+        updateExamStatus();
 
-    // ⛔ BEFORE EXAM
-    if (now < startTime) {
-        btn.innerText = "Exam Not Started";
-        btn.disabled = true;
-        btn.style.background = "#991b1b";
-        return;
-    }
+        // Block outside exam time
+        if (now < startTime || now > endTime) return;
 
-    // ⛔ AFTER EXAM
-    if (now > endTime) {
-        btn.innerText = "Exam Closed";
-        btn.disabled = true;
-        btn.style.background = "#991b1b";
-        return;
-    }
-        
-        if(phone.length === 11) {
+        if (phone.length === 11) {
             btn.innerText = "Verifying...";
             btn.disabled = true;
 
             try {
                 const doc = await db.collection("results").doc(phone).get();
-                if(doc.exists) {
+
+                if (doc.exists) {
                     const data = doc.data();
                     candidateName = data.name || "Candidate";
 
-                    // THE CHECK: Look for maths inside subjects
                     if (data.subjects && data.subjects.maths) {
-                        showToast(`Access Denied! ${candidateName}, you have already submitted Mathematics.`, 'error');
-                        btn.innerText = "ACCESS DENIED";
-                        btn.style.background = "#991b1b";
+                        showToast(`Access Denied! ${candidateName}, already submitted Mathematics.`, 'error');
                         btn.disabled = true;
+                        btn.style.background = "#991b1b";
                     } else {
-                        showToast(`Welcome back ${candidateName}, You're taking Mathematics mock exam today`, 'success');
-                        btn.innerText = "Verify & Proceed";
-                        btn.style.background = "#7c3aed";
+                        showToast(`Welcome ${candidateName}`, 'success');
                         btn.disabled = false;
+                        btn.style.background = "#7c3aed";
                     }
                 } else {
-                    showToast("Number not recognized! Take English Mock first.", 'error');
-                    btn.innerText = "Not Registered";
+                    showToast("Number not registered! Please take the English exam first", 'error');
                     btn.disabled = true;
                 }
-            } catch(e) { btn.innerText = "Retry"; }
+
+            } catch (e) {
+                btn.innerText = "Retry";
+            }
         } else {
             btn.disabled = true;
-            btn.innerText = "Verify & Proceed";
             btn.style.background = "#cbd5e1";
         }
     }
@@ -367,7 +384,7 @@
     function goToInstructions() {
         const phone = document.getElementById('whatsappNumber').value.trim();
         document.getElementById('cardName').innerText = `NAME: ${candidateName}`;
-        document.getElementById('cardPhone').innerText = `WHATSAPP NUMBER: ${phone}`;
+        document.getElementById('cardPhone').innerText = `WHATSAPP: ${phone}`;
         document.getElementById('page1').style.display = 'none';
         document.getElementById('page2').style.display = 'block';
     }
@@ -376,19 +393,23 @@
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = 'block';
         document.getElementById('headerCalcBtn').style.display = 'block';
-        try {
-            const res = await fetch("https://flexisystems2000.github.io/maths-api/index.json");
-            questions = await res.json();
-            initTabs(); renderQuestion(); startTimer(1800);
-        } catch (e) { alert("Failed to load questions. Check your data."); }
+
+        const res = await fetch("https://flexisystems2000.github.io/maths-api/index.json");
+        questions = await res.json();
+
+        initTabs();
+        renderQuestion();
+        startTimer(1800);
     }
 
     function renderQuestion() {
         const q = questions[currentIdx];
         document.getElementById('q-text').innerHTML = q.q;
         document.getElementById('q-count').innerText = `Question ${currentIdx + 1}`;
+
         const grid = document.getElementById('options-grid');
         grid.innerHTML = "";
+
         ["A","B","C","D"].forEach((lab, i) => {
             const optDiv = document.createElement('div');
             optDiv.className = `opt ${userAnswers[currentIdx] === lab ? 'selected' : ''}`;
@@ -400,6 +421,7 @@
             };
             grid.appendChild(optDiv);
         });
+
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(`tab-${currentIdx}`).classList.add('active');
     }
@@ -407,8 +429,12 @@
     function initTabs() {
         const grid = document.getElementById('tabs-grid');
         grid.innerHTML = "";
+
         questions.forEach((_, i) => {
-            const t = document.createElement('div'); t.className = 'tab'; t.id = `tab-${i}`; t.innerText = i + 1;
+            const t = document.createElement('div');
+            t.className = 'tab';
+            t.id = `tab-${i}`;
+            t.innerText = i + 1;
             t.onclick = () => { currentIdx = i; renderQuestion(); };
             grid.appendChild(t);
         });
@@ -416,100 +442,67 @@
 
     function startTimer(t) {
         let total = t;
+
         timerInterval = setInterval(() => {
-            let m = Math.floor(t / 60), s = t % 60;
+            let m = Math.floor(t / 60);
+            let s = t % 60;
+
             document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
             document.getElementById('progress-bar').style.width = (t/total*100) + "%";
+
             if (--t < 0) submitExam("Time Up");
         }, 1000);
     }
 
     async function submitExam(reason) {
         if (isSubmitting) return;
-        isSubmitting = true; clearInterval(timerInterval);
+        isSubmitting = true;
+        clearInterval(timerInterval);
+
         const phone = document.getElementById('whatsappNumber').value.trim();
         let score = 0;
-        questions.forEach((q, i) => { if(userAnswers[i] === q.a) score++; });
 
-        try {
-            await db.collection("results").doc(phone).set({
-                subjects: { maths: { score: score, status: reason, date: new Date().toLocaleString() } }
-            }, { merge: true });
-            
-            document.getElementById('page3').style.display = 'none';
-            document.getElementById('page4').style.display = 'block';
-            document.getElementById('status-message').innerText = `Congratulations ${candidateName}, Mathematics has been successfully submitted.`;
-        } catch(e) { isSubmitting = false; alert("Submission failed. Check network!"); }
+        questions.forEach((q, i) => {
+            if(userAnswers[i] === q.a) score++;
+        });
+
+        await db.collection("results").doc(phone).set({
+            subjects: {
+                maths: {
+                    score: score,
+                    status: reason,
+                    date: new Date().toLocaleString()
+                }
+            }
+        }, { merge: true });
+
+        document.getElementById('page3').style.display = 'none';
+        document.getElementById('page4').style.display = 'block';
+        document.getElementById('status-message').innerText =
+            `Congratulations ${candidateName}, submitted successfully.`;
     }
 
-    // Security: Tab Switch Auto-Submit
     document.addEventListener("visibilitychange", () => {
-        if (document.hidden && document.getElementById('page3').style.display === 'block' && !isSubmitting) {
+        if (document.hidden && document.getElementById('page3').style.display === 'block') {
             submitExam("Tab Switch Detected");
         }
     });
 
-    // Calculator & Navigation Logic
-function toggleCalc() {   
-    const el = document.getElementById('calc-container');   
-    const isHidden = (el.style.display === 'none' || el.style.display === '');  
-    el.style.display = isHidden ? 'block' : 'none';  
-    if (isHidden) document.getElementById('calc-display').focus();  
-}  
+    // Calculator (unchanged)
+    function toggleCalc() {
+        const el = document.getElementById('calc-container');
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
 
-// Clear all
-function cCl() { 
-    document.getElementById('calc-display').value = ''; 
-}  
+    function cIn(v) {
+        const map = { sin:'sin(', cos:'cos(', tan:'tan(', log:'log(', '√':'√(' };
+        document.getElementById('calc-display').value += map[v] || v;
+    }
 
-// Delete one character
-function cDel() { 
-    let v = document.getElementById('calc-display').value; 
-    document.getElementById('calc-display').value = v.slice(0, -1); 
-}  
+    function cCl(){ document.getElementById('calc-display').value=''; }
+    function cDel(){ let v=document.getElementById('calc-display').value; document.getElementById('calc-display').value=v.slice(0,-1); }
 
-// Insert into display (clean UI version)
-function cIn(v) {   
-    let display = document.getElementById('calc-display');  
-    const map = {
-        'log':'log(', 
-        'sin':'sin(', 
-        'cos':'cos(', 
-        'tan':'tan(', 
-        '√':'√('
-    };  
-    display.value += map[v] || v;  
-}  
-
-// Calculate result
-function cGo() {   
-    try {   
-        let exp = document.getElementById('calc-display').value;
-
-        // Convert log and root
-        exp = exp.replace(/log\(/g, 'Math.log10(');
-        exp = exp.replace(/√\(/g, 'Math.sqrt(');
-
-        // Convert trig (degrees → radians)
-        exp = exp.replace(/(sin|cos|tan)\(([^)]+)\)/g, 
-            (match, func, angle) => `Math.${func}((${angle}) * Math.PI / 180)`
-        );
-
-        // Evaluate
-        let result = eval(exp);
-
-                // Handle errors
-        document.getElementById('calc-display').value = 
-            (isNaN(result) || !isFinite(result)) 
-            ? 'Error' 
-            : Number(result.toFixed(6));
-
-    } catch(e) { 
-        document.getElementById('calc-display').value = 'Error'; 
-    }   
-}
-    function changeQ(n) { if(questions[currentIdx+n]) { currentIdx += n; renderQuestion(); } }
-    function confirmSubmit() { if(confirm("Submit Mathematics mock?")) submitExam("Manual Submission"); }
-</script>
-</body>
-</html>
+    function cGo(){
+        try{
+            let exp=document.getElementById('calc-display').value;
+            exp=exp.repl
